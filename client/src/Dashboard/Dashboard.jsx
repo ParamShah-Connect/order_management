@@ -126,15 +126,39 @@ const Option = styled.div`
 function Dashboard() {
   const [purchase, setItem] = useState([]);
   useEffect(() => {
-    axios.get("http://localhost:8000/po/getpo").then((res) => {
-      setItem(res.data);
-    });
+    // Fetch Purchase Orders
+    axios.get("http://localhost:8000/po/getpo")
+      .then((res) => {
+        setItem(res.data);
+      })
+      .catch((error) => {
+        console.error("Error fetching purchase orders:", error);
+      });
 
-    axios.get("http://localhost:8000/customerPo/getCustomerPo").then((res)=>{
-      setSale(res.data)
-    })
+    // Fetch Customer POs
+    axios.get("http://localhost:8000/customerPo/getCustomerPo")
+      .then((res) => {
+        setSale(res.data);
+      })
+      .catch((error) => {
+        console.error("Error fetching customer POs:", error);
+      });
+
+    // Fetch Remaining Purchase Orders
+    axios.get("http://localhost:8000/customerPo/getRemainingPurchaseOrder")
+      .then((res) => {
+        if (res.data.success) {
+          setRem(res.data.data);
+        } else {
+          console.error("Error: No data found");
+          setRem([]);
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching remaining purchase orders:", error);
+        setRem([]);
+      });
   }, []);
-
   const purchaseAmount = purchase.reduce((total, po) => {
     return total + po.item.reduce((itemTotal, item) => itemTotal + item.price, 0);
   }, 0);
@@ -153,7 +177,7 @@ function Dashboard() {
     { id: 3, des: "item 3", qty: 5, price: 500 },
     { id: 4, des: "item 4", qty: 8, price: 150 },
   ]);
-  const RemAmount = rems.reduce((acc, rem) => acc + rem.qty * rem.price, 0);
+  const RemAmount = rems.reduce((acc, rem) => acc +  rem.price, 0);
 
   function handleDateChange(event) {
     const selectedDate = event.target.value;
@@ -334,8 +358,8 @@ function Dashboard() {
             </thead>
             <tbody>
               {rems.map((rem) => (
-                <tr key={rem.id}>
-                  <td>{rem.des}</td>
+                <tr key={rem}>
+                  <td>{rem.name}</td>
                   <td>{rem.qty}</td>
                   <td>{rem.price.toFixed(2)}</td>
                 </tr>

@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { MdEmail, MdVisibility, MdVisibilityOff } from "react-icons/md";
-
 import styled from "styled-components";
 import ApplayOut from "./AppLayOut";
 import Navbar from "../Navbar";
@@ -13,20 +12,65 @@ const StyledDiv = styled.div`
   align-items: center;
   padding: 30px;
 `;
-function Home() {
-  const [isLogin, setIsLogin] = useState(false);
-  const navigate = useNavigate();
-  const [name, setName] = useState({
-    email: "",
-    password: "",
-  });
-  const [error, setError] = useState({
-    email: "",
-    password: "",
-  });
-  const [showPassword, setShowPassword] = useState(false);
 
-  // Reset state when the component mounts
+const FormContainer = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+`;
+
+const Form = styled.form`
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  width: 300px;
+`;
+
+const InputGroup = styled.div`
+  display: flex;
+  align-items: center;
+  position: relative;
+`;
+
+const Input = styled.input`
+  width: 100%;
+  padding: 10px;
+  padding-right: 40px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+`;
+
+const Icon = styled.div`
+  position: absolute;
+  right: 10px;
+  cursor: pointer;
+`;
+
+const ErrorText = styled.span`
+  color: red;
+  font-size: 12px;
+`;
+
+const Button = styled.button`
+  padding: 10px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+
+  &:hover {
+    background-color: #0056b3;
+  }
+`;
+
+function Home() {
+  const [name, setName] = useState({ email: "", password: "" });
+  const [error, setError] = useState({ email: "", password: "" });
+  const [showPassword, setShowPassword] = useState(false);
+  const navigate = useNavigate();
+
   useEffect(() => {
     setName({ email: "", password: "" });
   }, []);
@@ -52,8 +96,8 @@ function Home() {
 
   const inputEvent = (e) => {
     const { value, name: inputName } = e.target;
-    setName((preValue) => ({
-      ...preValue,
+    setName((prevValue) => ({
+      ...prevValue,
       [inputName]: value,
     }));
   };
@@ -61,98 +105,81 @@ function Home() {
   const togglePasswordVisibility = () => {
     setShowPassword((prevShowPassword) => !prevShowPassword);
   };
-  const [loggedInUser, setLoggedInUser] = useState(null);
-  const [records, setRecords] = useState([]);
 
-  const onSubmits = async(e) => {
+  const onSubmits = async (e) => {
     e.preventDefault();
-    try {
-      const { data } = await axios.post("http://localhost:8000/auth/login", name);
-    
-      if (data?.result) {
-        navigate("/dashboard");
-      } 
-  
-    } catch (error) {
-      console.log(error)
+    if (validForm()) {
+      try {
+        const { data } = await axios.post("http://localhost:8000/auth/login", name);
+        if (data?.result) {
+          navigate("/dashboard");
+        } else {
+          alert("Incorrect email or password");
+        }
+      } catch (error) {
+        console.error(error);
+        alert("An error occurred while logging in");
+      }
     }
   };
 
   return (
     <>
       <div className="login">
-        {isLogin ? (
-          <>
-            <ApplayOut />
-          </>
-        ) : (
-          <>
-            <Navbar />
-            <StyledDiv>
-              <div className="container shadow d-flex">
-                <div className="img">
-                  <img
-                    src="login-v2.svg"
-                    alt="imges logo"
-                    style={{ width: "80%", height: "80vh" }}
-                  ></img>
-                </div>
-
-                <form onSubmit={onSubmits} className="forms">
-            
-                    <h2>Sign-in</h2>
-                    <div className="input-groups">
-                      <div>
-                        <input
-                          type="email"
-                          placeholder="Email"
-                          name="email"
-                          onChange={inputEvent}
-                          value={name.email}
-                        />
-                        <MdEmail className="icon" />
-                      </div>
-                      <span className="error">{error.email}</span>
-                    </div>
-
-                    <div className="input-groups">
-                      <div>
-                        <input
-                          type={showPassword ? "text" : "password"}
-                          placeholder="Password"
-                          name="password"
-                          onChange={inputEvent}
-                          value={name.password}
-                        />
-                        {showPassword ? (
-                          <MdVisibilityOff
-                            className="icon"
-                            onClick={togglePasswordVisibility}
-                          />
-                        ) : (
-                          <MdVisibility
-                            className="icon"
-                            onClick={togglePasswordVisibility}
-                          />
-                        )}
-                      </div>
-                      <span className="error">{error.password}</span>
-                    </div>
-                    <div className="switch">
-                      <Link
-                        to="/forgot"
-                        style={{ textDecoration: "none", float: "right" }}
-                      >
-                        Forgot Password?
-                      </Link>
-                    </div>
-                    <button className="buton" type="submit">Sign-in</button>
-                
-                </form>
+        <Navbar />
+        <StyledDiv>
+          <FormContainer>
+            <div className="img">
+              <img
+                src="login-v2.svg"
+                alt="login illustration"
+                style={{ width: "80%", height: "80vh" }}
+              />
+            </div>
+            <Form onSubmit={onSubmits}>
+              <h2>Sign-in</h2>
+              <InputGroup>
+                <Input
+                  type="email"
+                  placeholder="Email"
+                  name="email"
+                  onChange={inputEvent}
+                  value={name.email}
+                />
+                <MdEmail className="icon" />
+              </InputGroup>
+              <ErrorText>{error.email}</ErrorText>
+              <InputGroup>
+                <Input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Password"
+                  name="password"
+                  onChange={inputEvent}
+                  value={name.password}
+                />
+                {showPassword ? (
+                  <Icon onClick={togglePasswordVisibility}>
+                    <MdVisibilityOff />
+                  </Icon>
+                ) : (
+                  <Icon onClick={togglePasswordVisibility}>
+                    <MdVisibility />
+                  </Icon>
+                )}
+              </InputGroup>
+              <ErrorText>{error.password}</ErrorText>
+              <div className="switch">
+                <Link
+                  to="/forgot"
+                  style={{ textDecoration: "none", float: "right" }}
+                >
+                  Forgot Password?
+                </Link>
               </div>
-            </StyledDiv>
-          </>
-        )}
+              <Button type="submit">Sign-in</Button>
+            </Form>
+          </FormContainer>
+        </StyledDiv>
       </div>
     </>
   );

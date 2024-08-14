@@ -28,14 +28,12 @@ const AddOrEditCustomer = ({ onPurchaseData, onClose }) => {
     const productName = event.target.value;
     setCustomer(productName);
 
-    // Find the selected product in the products array
     const product = products.find((p) => p.name === productName);
     
     if (product) {
-      // Update availableQty based on the selected product's quantity
       setAvailableQty(product.quantity || "");
-      setQtyAllocated(""); // Reset qtyAllocated when a new product is selected
-      setRemainingQty(product.quantity || ""); // Set remainingQty initially to the availableQty
+      setQtyAllocated(""); 
+      setRemainingQty(product.quantity || "");
       setSelectedProduct(product);
     }
   };
@@ -44,25 +42,56 @@ const AddOrEditCustomer = ({ onPurchaseData, onClose }) => {
     const allocatedQty = parseInt(event.target.value, 10);
     setQtyAllocated(allocatedQty);
 
-    // Update remainingQty based on allocatedQty
     if (selectedProduct) {
       const calculatedRemainingQty = (selectedProduct.quantity || 0) - allocatedQty;
       setRemainingQty(calculatedRemainingQty >= 0 ? calculatedRemainingQty : 0);
     }
   };
 
-  const handleSubmit = async(event) => {
+  // const handleSubmit = async(event) => {
+  //   event.preventDefault();
+  //   const item = {
+  //     customer,
+  //     availableQty,
+  //     qtyAllocated,
+  //     remainingQty,
+  //     invoice,
+  //     date,
+  //   };
+  //   console.log("param")
+  //   onPurchaseData(item);
+  //   setCustomer("");
+  //   setAvailableQty("");
+  //   setQtyAllocated("");
+  //   setRemainingQty("");
+  //   setInvoice("");
+  //   setDate("");
+  //   console.log(item);
+  //   await axios.post("http://localhost:8000/customerPo/insertCustomerPo",item).then((res)=>{
+  //     console.log(res);
+  //   }).then(()=>{
+  //     alert("PO inserted")
+  //   })
+  // };
+  const handleSubmit = async (event) => {
     event.preventDefault();
+    
+    // Calculate remainingTotalCost
+    const remainingTotalCost = remainingQty * (selectedProduct?.price || 0);
+  
     const item = {
       customer,
       availableQty,
       qtyAllocated,
       remainingQty,
+      remainingTotalCost, 
       invoice,
       date,
     };
-    console.log("param")
+  
+    console.log("param");
     onPurchaseData(item);
+  
     setCustomer("");
     setAvailableQty("");
     setQtyAllocated("");
@@ -70,12 +99,16 @@ const AddOrEditCustomer = ({ onPurchaseData, onClose }) => {
     setInvoice("");
     setDate("");
     console.log(item);
-    await axios.post("http://localhost:8000/customerPo/insertCustomerPo",item).then((res)=>{
-      console.log(res);
-    }).then(()=>{
-      alert("PO inserted")
-    })
+  
+    await axios.post("http://localhost:8000/customerPo/insertCustomerPo", item)
+      .then((res) => {
+        console.log(res);
+      })
+      .then(() => {
+        alert("PO inserted");
+      });
   };
+  
 
   return (
     <>
